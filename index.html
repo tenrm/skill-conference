@@ -43,6 +43,9 @@ small,.muted{color:var(--muted)}
 .side a{display:block;padding:.35rem .7rem;border-radius:8px;text-decoration:none;color:var(--muted);font-size:.92rem}
 .side a:hover{background:#ebe9e2;color:var(--ink)}
 .side a.on{background:var(--accent-2);color:var(--accent);font-weight:600}
+.side .sgroup{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700;padding:.8rem .7rem .2rem}
+.side .sgroup:first-child{padding-top:.2rem}
+input[type=date]{font:inherit;font-size:.95rem;padding:.45rem .6rem;border:1px solid #cfccc3;border-radius:8px;width:100%}
 .side .prog{margin:.8rem .7rem;font-size:.85rem}
 main{min-width:0}
 section.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:1.4rem 1.5rem;margin-bottom:1.2rem;box-shadow:var(--shadow);scroll-margin-top:84px}
@@ -126,6 +129,7 @@ details.more summary{cursor:pointer;font-weight:600;color:var(--accent)}
   .wrap{grid-template-columns:1fr}
   .side{position:static;max-height:none;display:flex;flex-wrap:wrap;gap:.2rem;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:.5rem}
   .side .prog{width:100%}
+  .side .sgroup{width:100%;padding:.4rem .3rem 0}
   .slot{grid-template-columns:1fr}
   .hero h1{font-size:1.4rem}
   section.card{padding:1.1rem}
@@ -683,6 +687,385 @@ const SKILLS = [
   {k:"pro",th:"ความเป็นมืออาชีพ",en:"Professionalism"}
 ];
 
+/* ===== Content part 2: preparing & submitting work ===== */
+LINKS.book = "https://stt52.cdn.purrso.me/program-book/96669f1e-a68a-4dc9-945a-d1c9e2aa5f97.pdf";
+LINKS.cfp = "https://stt52.scisoc.or.th/call-for-papers";
+LINKS.dates = "https://stt52.scisoc.or.th/schedule";
+LINKS.fees = "https://stt52.scisoc.or.th/fees";
+LINKS.downloads = "https://stt52.scisoc.or.th/downloads";
+LINKS.tplAbs = "https://stt52.scisoc.or.th/templates/Template_abstract_STT52.docx";
+LINKS.tplFull = "https://stt52.scisoc.or.th/templates/Template_fullpaper_STT52.doc";
+LINKS.tca = "https://thinkcheckattend.org/check/";
+
+const GROUPS = {
+  intro:{th:"เริ่มต้น",en:"Start here"},
+  prep:{th:"ก่อนส่งผลงาน",en:"Before submitting"},
+  pre:{th:"ก่อนไปงาน",en:"Before the congress"},
+  at:{th:"ระหว่างงาน",en:"At the congress"},
+  post:{th:"หลังงาน",en:"After"}
+};
+const GROUP_OF = {overview:"intro",key:"intro",skills:"intro",
+  roadmap:"prep",find:"prep",cfp:"prep",abstract:"prep",fullpaper:"prep",submit:"prep",
+  before:"pre",choose:"pre",planner:"pre",
+  listen:"at",posters:"at",present:"at",network:"at",photo:"at",daily:"at",
+  after:"post",refs:"post"};
+
+CHECK.submit = [
+  {th:"อ่าน Call for Papers และข้อกำหนดทั้งหมดจนจบ (ไม่ใช่แค่หัวข้อ)",en:"Read the entire Call for Papers and author guidelines (not just the headline)"},
+  {th:"ใช้ template ทางการของงานตั้งแต่เริ่มเขียน ไม่จัดรูปแบบเองแล้วค่อยย้าย",en:"Write inside the official template from the start — don't reformat at the end"},
+  {th:"ความยาวไม่เกินกำหนด (จำนวนคำ/หน้า) และตรวจว่านับรวมชื่อเรื่อง/ผู้แต่ง/รูปหรือไม่",en:"Within the word/page limit — and checked whether title, authors and figures count"},
+  {th:"มีครบทุกหัวข้อที่กำหนด เรียงตามลำดับของ template",en:"All required sections present, in the template's order"},
+  {th:"ชื่อผู้แต่ง สังกัด และอีเมลผู้ประสานงาน (corresponding author) ถูกต้อง สะกดตรงกันทุกไฟล์",en:"Author names, affiliations and corresponding email are correct and consistent in every file"},
+  {th:"ผู้ร่วมวิจัยทุกคนและอาจารย์ที่ปรึกษาอ่านและอนุมัติฉบับสุดท้ายแล้ว",en:"All co-authors and the advisor have read and approved the final version"},
+  {th:"รูป/ตารางมีหมายเลข คำบรรยาย หน่วย อ่านออก (≥300 dpi) และถูกอ้างถึงในเนื้อหา",en:"Figures/tables numbered, captioned, with units, legible (≥300 dpi) and cited in the text"},
+  {th:"เอกสารอ้างอิงครบ ใช้รูปแบบเดียวกันตามที่งานกำหนด",en:"References complete and in the single style the conference requires"},
+  {th:"ตรวจภาษาอังกฤษ (เครื่องมือตรวจไวยากรณ์ + คนอ่านทาน)",en:"English checked (grammar tool + a human proofreader)"},
+  {th:"ตรวจความซ้ำซ้อน/คัดลอก และไม่ใช้เนื้อหาที่ตีพิมพ์แล้ว (งานต้องเป็นต้นฉบับ)",en:"Similarity/plagiarism checked; no previously published content (work must be original)"},
+  {th:"ถ้าใช้ AI ช่วยเขียน ทำตามนโยบายของงาน และตรวจสอบความถูกต้องของทุกข้อความด้วยตัวเอง",en:"If AI tools helped, follow the conference policy and verify every statement yourself"},
+  {th:"เตรียมไฟล์ตามที่กำหนด (เช่น .docx + .pdf) ตั้งชื่อไฟล์ตามคำแนะนำ",en:"Files prepared as required (e.g. .docx + .pdf) and named as instructed"},
+  {th:"เลือก session/หัวข้อ และรูปแบบการนำเสนอ (oral/poster) ถูกต้อง",en:"Correct session/topic and presentation preference (oral/poster) selected"},
+  {th:"ส่งก่อนกำหนดอย่างน้อย 2–3 วัน เก็บอีเมลยืนยัน/ภาพหน้าจอไว้",en:"Submitted at least 2–3 days before the deadline; confirmation email/screenshot saved"},
+  {th:"ลงปฏิทิน: วันแจ้งผล วันส่งแก้ไข วันลงทะเบียน early-bird",en:"Calendar entries for decision, correction and early-bird registration dates"}
+];
+
+const NEW_SECTIONS = [
+{ id:"roadmap", nav:{th:"แผนเวลาภาพรวม",en:"Overall roadmap"},
+  th:`<div class="eyebrow">ช่วงเตรียมผลงาน · 1</div><h2>หลักการ: เริ่มก่อนวันงานหลายเดือน</h2>
+<p>การไปประชุมวิชาการให้ได้ประโยชน์เต็มที่เริ่มตั้งแต่ <b>4–9 เดือนก่อนวันงาน</b> คือช่วงเลือกงาน เขียนบทคัดย่อ/บทความ ส่ง รอผลพิจารณา แก้ไข และลงทะเบียน ใช้ STT52 เป็นตัวอย่างจริง:</p>
+<div class="tblwrap"><table><thead><tr><th>ช่วงเวลา (STT52)</th><th>เกิดอะไรขึ้น</th><th>นิสิตควรทำ</th></tr></thead><tbody>
+<tr><td>พ.ค.–มิ.ย. 2569</td><td>ประกาศ Call for Papers</td><td>เลือกงาน อ่านข้อกำหนด ดาวน์โหลด template คุยกับอาจารย์</td></tr>
+<tr><td>27 ก.ค. → ขยาย 10 ส.ค. → 20 ส.ค. 2569</td><td>กำหนดส่งผลงาน (ขยาย 2 ครั้ง)</td><td>ส่งตามกำหนดแรก — อย่าวางแผนโดยหวังว่าจะมีการขยายเวลา</td></tr>
+<tr><td>10 ส.ค. – 8 ก.ย. 2569</td><td>แจ้งผลเบื้องต้น (interim decision)</td><td>อ่านความเห็นผู้ประเมินอย่างละเอียด</td></tr>
+<tr><td>17 ส.ค. – 15 ก.ย. 2569</td><td>กำหนดส่งฉบับแก้ไข</td><td>แก้ไขให้ครบทุกข้อ ส่งให้อาจารย์ตรวจก่อน</td></tr>
+<tr><td>1–30 ก.ย. 2569</td><td>แจ้งผลสุดท้าย</td><td>ทำหนังสือขออนุมัติเดินทาง/ขอทุน</td></tr>
+<tr><td>31 ต.ค. 2569</td><td>ปิดลงทะเบียน early-bird</td><td>ลงทะเบียนและชำระเงินให้ทัน (ประหยัดกว่า)</td></tr>
+<tr><td>ต.ค.–พ.ย. 2569</td><td>—</td><td>ทำโปสเตอร์/สไลด์ ซ้อม เตรียมเดินทาง</td></tr>
+<tr><td>23–25 พ.ย. 2569</td><td>วันประชุม</td><td>นำเสนอ ฟัง สร้างเครือข่าย</td></tr>
+</tbody></table></div>
+<p class="muted">แต่ละรอบการส่งมีวันแจ้งผลและวันแก้ไขของตัวเอง (ดู <a href="${LINKS.dates}" target="_blank">Important Dates</a>) เวลาทั้งหมดเป็นเวลาประเทศไทย (UTC+7)</p>
+<h3>🧮 วางแผนย้อนหลังจากกำหนดส่ง</h3>{{w:timeline}}`,
+  en:`<div class="eyebrow">Preparing your work · 1</div><h2>Principle: start months before the congress</h2>
+<p>Getting the most out of a conference starts <b>4–9 months before it</b>: choosing the event, writing the abstract/paper, submitting, waiting for review, revising and registering. STT52 as a real example:</p>
+<div class="tblwrap"><table><thead><tr><th>When (STT52)</th><th>What happens</th><th>What you should do</th></tr></thead><tbody>
+<tr><td>May–Jun 2026</td><td>Call for Papers opens</td><td>Choose the event, read the rules, download the template, talk to your advisor</td></tr>
+<tr><td>27 Jul → extended 10 Aug → 20 Aug 2026</td><td>Submission deadline (extended twice)</td><td>Aim for the first deadline — never plan around an extension</td></tr>
+<tr><td>10 Aug – 8 Sep 2026</td><td>Interim decision</td><td>Read reviewer comments carefully</td></tr>
+<tr><td>17 Aug – 15 Sep 2026</td><td>Corrections due</td><td>Address every comment; have your advisor check first</td></tr>
+<tr><td>1–30 Sep 2026</td><td>Final decision</td><td>Request travel approval / funding</td></tr>
+<tr><td>31 Oct 2026</td><td>Early-bird registration closes</td><td>Register and pay in time (cheaper)</td></tr>
+<tr><td>Oct–Nov 2026</td><td>—</td><td>Make your poster/slides, rehearse, plan travel</td></tr>
+<tr><td>23–25 Nov 2026</td><td>Congress</td><td>Present, listen, network</td></tr>
+</tbody></table></div>
+<p class="muted">Each submission round has its own decision and correction dates (see <a href="${LINKS.dates}" target="_blank">Important Dates</a>). All times are Thailand time (UTC+7).</p>
+<h3>🧮 Plan backwards from the deadline</h3>{{w:timeline}}`},
+
+{ id:"find", nav:{th:"หางานประชุมที่เหมาะสม",en:"Finding the right conference"},
+  th:`<div class="eyebrow">ช่วงเตรียมผลงาน · 2</div><h2>หางานประชุมที่เหมาะสม</h2>
+<p>เริ่มจาก <b>เป้าหมาย</b>: อยากได้ feedback ต่องานที่ยังไม่เสร็จ? อยากได้ผลงานตีพิมพ์ใน proceedings? อยากรู้จักนักวิจัยในสาขา? อยากฝึกนำเสนอภาษาอังกฤษ? แต่ละเป้าหมายเหมาะกับงานประชุมคนละแบบ</p>
+<div class="grid2">
+<div class="box"><h4>🔎 หางานจากที่ไหน</h4><ul>
+<li>อาจารย์ที่ปรึกษาและรุ่นพี่ในแล็บ — ถามว่าเคยไปงานไหนและได้อะไร</li>
+<li>สมาคมวิชาชีพ/สมาคมวิทยาศาสตร์ในสาขาของตัวเอง (มักจัดประชุมประจำปี)</li>
+<li>ประกาศของคณะ/มหาวิทยาลัย และอีเมลข่าวสาร (mailing list)</li>
+<li>ดูว่านักวิจัยที่เราอ่านงานบ่อย ๆ ไปนำเสนอที่ไหน (CV, ประวัติผลงาน)</li>
+<li>ระวังอีเมลเชิญชวนที่ส่งมาโดยไม่รู้จักกัน — มักเป็นงานที่ไม่น่าเชื่อถือ</li></ul></div>
+<div class="box"><h4>🧭 ประเภทงาน</h4><ul>
+<li><b>ประชุมระดับชาติ/สมาคม</b> (เช่น STT) — หลายสาขา เหมาะกับนำเสนอครั้งแรก มีรางวัลนิสิต</li>
+<li><b>ประชุมนานาชาติเฉพาะสาขา</b> — ผู้เชี่ยวชาญตรงสาย การแข่งขันสูง ค่าใช้จ่ายสูงกว่า</li>
+<li><b>Student/young scientist symposium</b> — บรรยากาศเป็นกันเอง ได้ฝึกและได้ feedback</li>
+<li><b>Workshop / training</b> — ได้ทักษะเทคนิคเชิงปฏิบัติ</li></ul></div>
+</div>
+<h3>เกณฑ์เลือกงาน</h3>
+<ul>
+<li><b>ขอบเขตตรงกับงาน</b> — มี session/symposium ที่ตรงหัวข้อ (STT52 มี Session A–G และ Symposia เฉพาะทาง)</li>
+<li><b>ผู้ฟังและเครือข่าย</b> — คนที่อยากรู้จักไปงานนี้หรือไม่ keynote เป็นใคร</li>
+<li><b>ผู้จัดและความน่าเชื่อถือ</b> — จัดโดยสมาคม/มหาวิทยาลัยที่รู้จัก จัดต่อเนื่องหลายครั้ง (STT จัดมาเป็นครั้งที่ 52)</li>
+<li><b>ช่องทางตีพิมพ์</b> — abstract book, proceedings, หรือวารสาร; ดูฐานข้อมูลที่ indexing และผลต่อการตีพิมพ์วารสารภายหลัง</li>
+<li><b>ค่าใช้จ่ายและทุน</b> — ค่าลงทะเบียน + เดินทาง + ที่พัก เช่น STT52 นิสิตผู้นำเสนอ 3,000 บาท (early-bird) / 3,800 บาท (ปกติ) ผู้เข้าร่วม 2,200 / 2,900 บาท (<a href="${LINKS.fees}" target="_blank">ดูอัตรา</a>)</li>
+<li><b>จังหวะเวลา</b> — ผลการทดลองจะพร้อมทันกำหนดส่งหรือไม่ ชนกับสอบ/เก็บตัวอย่างหรือไม่</li>
+<li><b>โอกาสสำหรับนิสิต</b> — รางวัล Best Poster/Oral, ทุนเดินทาง, กิจกรรม mentoring</li>
+</ul>
+<div class="warn"><b>ระวังงานประชุมแสวงประโยชน์ (predatory conference):</b> ชื่อคล้ายงานดัง รับทุกหัวข้อ เชิญผ่านอีเมลสแปม ไม่มีรายชื่อกรรมการชัดเจน รับผลงานเร็วผิดปกติ ไม่บอกว่าตีพิมพ์ที่ไหน ค่าธรรมเนียมสูงแต่ไม่ชัดเจน ใช้หลัก <a href="${LINKS.tca}" target="_blank">Think. Check. Attend.</a> ตรวจสอบก่อนส่งงาน</div>
+<h3>🧪 ประเมินงานประชุมที่สนใจ</h3>{{w:confcheck}}`,
+  en:`<div class="eyebrow">Preparing your work · 2</div><h2>Finding the right conference</h2>
+<p>Start from your <b>goal</b>: feedback on unfinished work? A proceedings publication? Meeting researchers in your field? Practising an English talk? Each goal suits a different kind of meeting.</p>
+<div class="grid2">
+<div class="box"><h4>🔎 Where to look</h4><ul>
+<li>Your advisor and senior lab members — ask which meetings they attended and what they gained</li>
+<li>Professional/scientific societies in your field (usually hold annual meetings)</li>
+<li>Faculty/university announcements and mailing lists</li>
+<li>Where researchers you often read present their work (CVs, publication lists)</li>
+<li>Be wary of unsolicited email invitations — often from unreliable events</li></ul></div>
+<div class="box"><h4>🧭 Types of meeting</h4><ul>
+<li><b>National/society congress</b> (e.g. STT) — multidisciplinary, good for a first presentation, student awards</li>
+<li><b>Specialised international conference</b> — experts in your niche, more competitive and costly</li>
+<li><b>Student/young-scientist symposium</b> — friendly, great for practice and feedback</li>
+<li><b>Workshop / training</b> — hands-on technical skills</li></ul></div>
+</div>
+<h3>Selection criteria</h3>
+<ul>
+<li><b>Scope fit</b> — a session/symposium that matches your topic (STT52 has Sessions A–G plus specialised symposia)</li>
+<li><b>Audience & network</b> — will the people you want to meet attend? Who are the keynotes?</li>
+<li><b>Organiser & credibility</b> — a known society/university, a long-running series (STT is in its 52nd edition)</li>
+<li><b>Publication outlet</b> — abstract book, proceedings or journal; check indexing and any effect on later journal publication</li>
+<li><b>Cost & funding</b> — registration + travel + accommodation, e.g. STT52 student presenter 3,000 THB (early-bird) / 3,800 THB (regular), attendee 2,200 / 2,900 THB (<a href="${LINKS.fees}" target="_blank">see fees</a>)</li>
+<li><b>Timing</b> — will your results be ready by the deadline? Does it clash with exams or fieldwork?</li>
+<li><b>Student opportunities</b> — Best Poster/Oral awards, travel grants, mentoring events</li>
+</ul>
+<div class="warn"><b>Beware of predatory conferences:</b> names that mimic famous meetings, any topic accepted, spam invitations, no clear committee, suspiciously fast acceptance, no stated publication outlet, high or vague fees. Check with <a href="${LINKS.tca}" target="_blank">Think. Check. Attend.</a> before submitting.</div>
+<h3>🧪 Evaluate a conference you are considering</h3>{{w:confcheck}}`},
+
+{ id:"cfp", nav:{th:"อ่านข้อกำหนดการส่งผลงาน",en:"Reading the submission rules"},
+  th:`<div class="eyebrow">ช่วงเตรียมผลงาน · 3</div><h2>อ่าน Call for Papers ให้ครบก่อนเขียน</h2>
+<p>ผลงานจำนวนมากถูกส่งกลับหรือถูกปฏิเสธเพราะ <b>ไม่ทำตามข้อกำหนด</b> ไม่ใช่เพราะคุณภาพวิทยาศาสตร์ ก่อนเริ่มเขียนให้สกัดข้อกำหนดทั้งหมดลงตาราง แล้วให้อาจารย์ดูด้วย</p>
+<h3>ตัวอย่าง: ข้อกำหนดของ STT52</h3>
+<div class="grid2">
+<div class="box"><h4>📄 Abstract</h4><ul><li>ประมาณ <b>200 คำ</b></li><li>ไม่เกิน <b>1 หน้า</b></li><li>รูปหรือตาราง <b>ได้ 1 รายการ</b></li><li>หัวข้อที่ต้องมี: Title, Authors & Affiliation, Abstract</li></ul></div>
+<div class="box"><h4>📘 Full paper</h4><ul><li><b>6–10 หน้า</b> มีรูปและตารางได้</li><li>ตีพิมพ์ใน proceedings book</li><li>ต้องส่ง <b>abstract + full paper พร้อมกัน</b> ส่ง abstract ก่อนแล้วตามด้วย full paper ภายหลังไม่ได้</li><li>หัวข้อ: Title, Authors & Affiliation, Abstract, Introduction, Methodology, Results and Discussion, Conclusion, Acknowledgements, References</li></ul></div>
+<div class="box"><h4>✍️ รูปแบบ</h4><ul><li>ภาษาอังกฤษเท่านั้น</li><li>ใช้ template ของ STT52 ส่งทั้ง Word (.doc/.docx) และ PDF</li><li>ระยะบรรทัด single, จัดชิดขอบทั้งสองด้าน (justified), ระยะก่อน/หลังย่อหน้า 0 pt</li></ul></div>
+<div class="box"><h4>⚖️ กติกาอื่น</h4><ul><li>ต้องเป็นงานต้นฉบับที่ยังไม่ตีพิมพ์ — คัดลอกผลงานถูกปฏิเสธ</li><li>ทุกผลงานผ่านการประเมินโดยผู้ทรงคุณวุฒิ (peer review)</li><li><b>เปลี่ยนประเภทหรือเนื้อหาหลังตอบรับไม่ได้</b></li><li>Template: <a href="${LINKS.tplAbs}" target="_blank">Abstract (.docx)</a> · <a href="${LINKS.tplFull}" target="_blank">Full paper (.doc)</a></li></ul></div>
+</div>
+<p class="muted">ที่มา: <a href="${LINKS.cfp}" target="_blank">STT52 Call for Papers</a></p>
+<h3>📋 ตารางสกัดข้อกำหนดของงานที่จะส่ง</h3>
+<p>กรอกจากประกาศของงานที่จะส่งจริง (กดปุ่มเพื่อดูตัวอย่างที่กรอกจาก STT52)</p>{{w:cfp}}`,
+  en:`<div class="eyebrow">Preparing your work · 3</div><h2>Read the whole Call for Papers before writing</h2>
+<p>Many submissions are returned or rejected for <b>not following the instructions</b>, not for weak science. Before you write, extract every requirement into a table and show it to your advisor.</p>
+<h3>Example: STT52 requirements</h3>
+<div class="grid2">
+<div class="box"><h4>📄 Abstract</h4><ul><li>About <b>200 words</b></li><li><b>One page</b> maximum</li><li><b>One</b> figure or table allowed</li><li>Required: Title, Authors & Affiliation, Abstract</li></ul></div>
+<div class="box"><h4>📘 Full paper</h4><ul><li><b>6–10 pages</b>, figures and tables allowed</li><li>Published in the proceedings book</li><li>Submit <b>abstract + full paper together</b> — you cannot add the full paper later</li><li>Sections: Title, Authors & Affiliation, Abstract, Introduction, Methodology, Results and Discussion, Conclusion, Acknowledgements, References</li></ul></div>
+<div class="box"><h4>✍️ Format</h4><ul><li>English only</li><li>Use the STT52 templates; submit both Word (.doc/.docx) and PDF</li><li>Single line spacing, fully justified, 0 pt before/after paragraphs</li></ul></div>
+<div class="box"><h4>⚖️ Other rules</h4><ul><li>Original, unpublished work only — plagiarism means rejection</li><li>All submissions are peer-reviewed</li><li><b>No change of type or content after acceptance</b></li><li>Templates: <a href="${LINKS.tplAbs}" target="_blank">Abstract (.docx)</a> · <a href="${LINKS.tplFull}" target="_blank">Full paper (.doc)</a></li></ul></div>
+</div>
+<p class="muted">Source: <a href="${LINKS.cfp}" target="_blank">STT52 Call for Papers</a></p>
+<h3>📋 Requirement worksheet for your target conference</h3>
+<p>Fill it from the actual call you are submitting to (press the button to see an STT52 example).</p>{{w:cfp}}`},
+
+{ id:"abstract", nav:{th:"เขียนบทคัดย่อ",en:"Writing the abstract"},
+  th:`<div class="eyebrow">ช่วงเตรียมผลงาน · 4</div><h2>เขียนบทคัดย่อ (Abstract)</h2>
+<p>บทคัดย่อคือ "โฆษณา" ของงานเรา กรรมการใช้ตัดสินว่ารับหรือไม่ และผู้ฟังใช้ตัดสินว่าจะเข้าห้องเราหรือไม่ ต้องอ่านเข้าใจได้โดยไม่ต้องอ่านอย่างอื่นประกอบ</p>
+<h3>โครงสร้าง 5 ส่วน (สำหรับ ~200 คำ)</h3>
+<div class="tblwrap"><table><thead><tr><th>ส่วน</th><th>ประมาณ</th><th>เขียนอะไร</th></tr></thead><tbody>
+<tr><td>1. Background</td><td>1–2 ประโยค · ~30 คำ</td><td>บริบท ปัญหา และช่องว่างความรู้</td></tr>
+<tr><td>2. Aim / hypothesis</td><td>1 ประโยค · ~20 คำ</td><td>วัตถุประสงค์หรือสมมติฐานที่ชัดเจน</td></tr>
+<tr><td>3. Methods</td><td>2–3 ประโยค · ~50 คำ</td><td>ตัวอย่าง/พื้นที่ศึกษา จำนวน วิธีหลัก การวิเคราะห์ (เฉพาะที่จำเป็น)</td></tr>
+<tr><td>4. Results</td><td>2–3 ประโยค · ~70 คำ</td><td>ผลสำคัญ <b>พร้อมตัวเลข</b> (ค่า, %, p-value) ห้ามเขียนว่า "จะนำเสนอผลในงาน"</td></tr>
+<tr><td>5. Conclusion</td><td>1–2 ประโยค · ~30 คำ</td><td>ความหมายของผล การนำไปใช้ หรือก้าวต่อไป — ไม่สรุปเกินข้อมูล</td></tr>
+</tbody></table></div>
+<div class="grid2">
+<div class="box"><h4>✅ ควรทำ</h4><ul>
+<li>ชื่อเรื่อง 10–15 คำ บอกว่าศึกษาอะไร (อาจตามด้วยวิธี) เขียนบทคัดย่อเสร็จก่อนแล้วค่อยตั้งชื่อ</li>
+<li>Past tense สำหรับวิธีการและผล · Present tense สำหรับข้อเท็จจริงที่รู้กันและข้อสรุป</li>
+<li>นิยามตัวย่อเมื่อใช้ครั้งแรก ใช้ชื่อวิทยาศาสตร์ถูกต้อง (ตัวเอียง)</li>
+<li>เลือก keywords 3–5 คำที่ไม่ซ้ำกับชื่อเรื่อง</li>
+<li>ให้อาจารย์และเพื่อนต่างสาขาอ่าน — ถ้าเขาสรุปงานเราได้ถูก แปลว่าชัดพอ</li></ul></div>
+<div class="box"><h4>⛔ ไม่ควรทำ</h4><ul>
+<li>เกินจำนวนคำ/หน้า (อาจถูกปฏิเสธทันที)</li>
+<li>ใส่เอกสารอ้างอิง ศัพท์เฉพาะมากเกินไป หรือตัวย่อที่ไม่นิยาม</li>
+<li>เขียนวิธีการละเอียดเกินจนไม่มีที่ให้ผลลัพธ์</li>
+<li>ผลลัพธ์คลุมเครือ เช่น "results will be discussed"</li>
+<li>ข้อสรุปที่ข้อมูลไม่รองรับ หรือคัดลอกประโยคจากงานผู้อื่น</li></ul></div>
+</div>
+<h3>✏️ เครื่องมือเขียนและนับคำบทคัดย่อ</h3>
+<p class="muted">STT52 กำหนดให้เขียนเป็นภาษาอังกฤษ — กรอกแต่ละส่วน ระบบจะนับคำ ประกอบเป็นย่อหน้า และตรวจจุดที่พบบ่อย</p>{{w:abstract}}`,
+  en:`<div class="eyebrow">Preparing your work · 4</div><h2>Writing the abstract</h2>
+<p>The abstract is the "advertisement" for your work: reviewers use it to accept or reject, and attendees use it to choose your room. It must make sense on its own.</p>
+<h3>Five-part structure (for ~200 words)</h3>
+<div class="tblwrap"><table><thead><tr><th>Part</th><th>Approx.</th><th>What to write</th></tr></thead><tbody>
+<tr><td>1. Background</td><td>1–2 sentences · ~30 words</td><td>Context, problem and knowledge gap</td></tr>
+<tr><td>2. Aim / hypothesis</td><td>1 sentence · ~20 words</td><td>A clear objective or hypothesis</td></tr>
+<tr><td>3. Methods</td><td>2–3 sentences · ~50 words</td><td>Samples/site, numbers, key methods, analysis (essentials only)</td></tr>
+<tr><td>4. Results</td><td>2–3 sentences · ~70 words</td><td>Key findings <b>with numbers</b> (values, %, p-values) — never "results will be presented"</td></tr>
+<tr><td>5. Conclusion</td><td>1–2 sentences · ~30 words</td><td>What it means, applications or next steps — don't overclaim</td></tr>
+</tbody></table></div>
+<div class="grid2">
+<div class="box"><h4>✅ Do</h4><ul>
+<li>Title of 10–15 words saying what you studied (optionally the method); write the abstract first, then the title</li>
+<li>Past tense for methods and results · present tense for established facts and conclusions</li>
+<li>Define acronyms at first use; write scientific names correctly (italic)</li>
+<li>Choose 3–5 keywords not already in the title</li>
+<li>Ask your advisor and a friend from another field to read it — if they can summarise it, it's clear enough</li></ul></div>
+<div class="box"><h4>⛔ Don't</h4><ul>
+<li>Exceed the word/page limit (may be rejected outright)</li>
+<li>Include references, heavy jargon or undefined acronyms</li>
+<li>Spend so many words on methods that results get squeezed</li>
+<li>Write vague results such as "results will be discussed"</li>
+<li>Draw conclusions your data don't support, or copy sentences from others</li></ul></div>
+</div>
+<h3>✏️ Abstract builder & word counter</h3>
+<p class="muted">STT52 requires English — fill in each part; the tool counts words, assembles the paragraph and checks common problems.</p>{{w:abstract}}`},
+
+{ id:"fullpaper", nav:{th:"เขียนบทความฉบับเต็ม",en:"Writing the full paper"},
+  th:`<div class="eyebrow">ช่วงเตรียมผลงาน · 5</div><h2>เขียนบทความฉบับเต็ม (Full paper / Proceedings)</h2>
+<p>บทความฉบับเต็มสำหรับ proceedings คือบทความวิจัยขนาดสั้น (STT52: 6–10 หน้า รวมรูป ตาราง และเอกสารอ้างอิง) ใช้โครงสร้าง IMRaD และ <b>เขียนใน template ทางการตั้งแต่เริ่ม</b> เพื่อให้เห็นจำนวนหน้าจริงตลอดเวลา</p>
+<div class="tblwrap"><table><thead><tr><th>หัวข้อ</th><th>สัดส่วนโดยประมาณ</th><th>หลักการ</th></tr></thead><tbody>
+<tr><td>Title / Authors / Affiliation</td><td>—</td><td>ตาม template เป๊ะ: ลำดับชื่อ, ตัวยก (superscript) สังกัด, อีเมล corresponding author</td></tr>
+<tr><td>Abstract + Keywords</td><td>~200 คำ</td><td>ใช้หลักเดียวกับหัวข้อก่อนหน้า (STT52 ส่ง abstract พร้อม full paper)</td></tr>
+<tr><td>Introduction</td><td>~1 หน้า</td><td>จากกว้างไปแคบ (funnel): ความสำคัญ → สิ่งที่รู้แล้ว (อ้างอิง) → ช่องว่าง → วัตถุประสงค์</td></tr>
+<tr><td>Methodology</td><td>1–2 หน้า</td><td>ละเอียดพอให้ผู้อื่นทำซ้ำได้: วัสดุ/ตัวอย่าง พื้นที่ เครื่องมือ (รุ่น/ผู้ผลิต) สถิติ ใบอนุญาต/จริยธรรม</td></tr>
+<tr><td>Results and Discussion</td><td>2–4 หน้า</td><td>เล่าตามรูป/ตาราง เปรียบเทียบกับงานอื่น อธิบายเหตุผล และระบุข้อจำกัด</td></tr>
+<tr><td>Conclusion</td><td>1 ย่อหน้า</td><td>ตอบวัตถุประสงค์ทีละข้อ ไม่ใส่ข้อมูลใหม่</td></tr>
+<tr><td>Acknowledgements</td><td>2–3 บรรทัด</td><td>แหล่งทุน (เลขที่สัญญา), ผู้ช่วยเหลือ, หน่วยงานที่ให้ใช้เครื่องมือ/พื้นที่</td></tr>
+<tr><td>References</td><td>~0.5–1 หน้า</td><td>รูปแบบเดียวตาม template ทุกรายการที่อ้างในเนื้อหาต้องมีในรายการและกลับกัน (ใช้ Zotero/EndNote/Mendeley ช่วย)</td></tr>
+</tbody></table></div>
+<div class="grid2">
+<div class="box"><h4>📊 รูปและตาราง</h4><ul>
+<li>ทุกรูป/ตารางมีหมายเลขและคำบรรยายที่อ่านเข้าใจได้ด้วยตัวเอง</li>
+<li>ความละเอียด ≥300 dpi ตัวอักษรในรูปอ่านออกเมื่อพิมพ์ ระบุหน่วยและ error bar</li>
+<li>อ้างถึงในเนื้อหาก่อนรูปปรากฏ ("as shown in Fig. 1")</li>
+<li>ไม่แสดงข้อมูลเดียวกันซ้ำทั้งในรูปและตาราง</li></ul></div>
+<div class="box"><h4>⚠️ ข้อควรระวัง</h4><ul>
+<li><b>ความเป็นต้นฉบับ:</b> ไม่ใช้เนื้อหาที่ตีพิมพ์แล้ว รวมถึงของตัวเอง; ตรวจความซ้ำก่อนส่ง</li>
+<li><b>ผลต่อการตีพิมพ์วารสารภายหลัง:</b> ข้อมูลที่ลง proceedings ฉบับเต็มแล้ว บางวารสารถือว่าตีพิมพ์แล้ว — ปรึกษาอาจารย์ว่าจะส่งแค่ abstract หรือ full paper</li>
+<li><b>ผู้แต่ง:</b> ตกลงลำดับชื่อและให้ทุกคนอนุมัติก่อนส่ง</li>
+<li><b>AI:</b> ใช้ช่วยภาษาได้ตามนโยบายของงาน แต่ผู้เขียนรับผิดชอบความถูกต้องทุกประโยคและทุกการอ้างอิง</li>
+<li>STT52: <b>เปลี่ยนประเภทหรือเนื้อหาหลังตอบรับไม่ได้</b></li></ul></div>
+</div>
+<h3>ขั้นตอนการเขียนที่แนะนำ</h3>
+<ol>
+<li>ทำรูปและตารางหลักก่อน (ผลคือแกนของเรื่อง)</li>
+<li>เขียน Methodology → Results and Discussion → Conclusion → Introduction → Abstract → Title</li>
+<li>ส่งอาจารย์ตรวจอย่างน้อย 2 รอบ เผื่อเวลารอบละ ~1 สัปดาห์</li>
+<li>ตรวจภาษา ตรวจความซ้ำ ตรวจการอ้างอิง</li>
+<li>แปลงเป็น PDF แล้วตรวจอีกครั้ง (ฟอนต์ สมการ รูป ตัวอักษรพิเศษ จำนวนหน้า)</li>
+</ol>`,
+  en:`<div class="eyebrow">Preparing your work · 5</div><h2>Writing the full paper (proceedings)</h2>
+<p>A proceedings full paper is a short research article (STT52: 6–10 pages including figures, tables and references). Use the IMRaD structure and <b>write inside the official template from the start</b> so you always see the real page count.</p>
+<div class="tblwrap"><table><thead><tr><th>Section</th><th>Approx. share</th><th>Principles</th></tr></thead><tbody>
+<tr><td>Title / Authors / Affiliation</td><td>—</td><td>Follow the template exactly: author order, superscript affiliations, corresponding-author email</td></tr>
+<tr><td>Abstract + Keywords</td><td>~200 words</td><td>Same principles as the previous section (STT52 requires the abstract together with the full paper)</td></tr>
+<tr><td>Introduction</td><td>~1 page</td><td>Funnel: importance → what is known (cited) → gap → objectives</td></tr>
+<tr><td>Methodology</td><td>1–2 pages</td><td>Enough detail to replicate: materials/samples, site, instruments (model/maker), statistics, permits/ethics</td></tr>
+<tr><td>Results and Discussion</td><td>2–4 pages</td><td>Tell the story through figures/tables, compare with other studies, explain, state limitations</td></tr>
+<tr><td>Conclusion</td><td>1 paragraph</td><td>Answer each objective; no new data</td></tr>
+<tr><td>Acknowledgements</td><td>2–3 lines</td><td>Funding (grant numbers), helpers, facilities and site access</td></tr>
+<tr><td>References</td><td>~0.5–1 page</td><td>One style per the template; every in-text citation is listed and vice versa (use Zotero/EndNote/Mendeley)</td></tr>
+</tbody></table></div>
+<div class="grid2">
+<div class="box"><h4>📊 Figures & tables</h4><ul>
+<li>Every figure/table is numbered with a self-explanatory caption</li>
+<li>≥300 dpi; text legible when printed; units and error bars shown</li>
+<li>Cite in the text before it appears ("as shown in Fig. 1")</li>
+<li>Don't show the same data in both a figure and a table</li></ul></div>
+<div class="box"><h4>⚠️ Watch out</h4><ul>
+<li><b>Originality:</b> no previously published content, including your own; run a similarity check</li>
+<li><b>Later journal publication:</b> some journals treat a full proceedings paper as prior publication — discuss with your advisor whether to submit only an abstract</li>
+<li><b>Authorship:</b> agree on author order and get everyone's approval before submitting</li>
+<li><b>AI:</b> language help may be allowed by the conference policy, but authors are responsible for every sentence and citation</li>
+<li>STT52: <b>no change of type or content after acceptance</b></li></ul></div>
+</div>
+<h3>Recommended writing order</h3>
+<ol>
+<li>Make the key figures and tables first (results are the backbone)</li>
+<li>Write Methodology → Results and Discussion → Conclusion → Introduction → Abstract → Title</li>
+<li>At least two advisor review rounds, allowing ~1 week each</li>
+<li>Check language, similarity and references</li>
+<li>Export to PDF and check again (fonts, equations, figures, special characters, page count)</li>
+</ol>`},
+
+{ id:"submit", nav:{th:"ส่งผลงาน & หลังพิจารณา",en:"Submitting & after review"},
+  th:`<div class="eyebrow">ช่วงเตรียมผลงาน · 6</div><h2>ตรวจก่อนกดส่ง และจัดการหลังผลพิจารณา</h2>
+<h3>Checklist ก่อนกดส่ง</h3>{{w:check:submit}}
+<div class="grid2">
+<div class="box"><h4>📨 เมื่อได้รับผลพิจารณา</h4><ul>
+<li>อ่านความเห็นผู้ประเมินทุกข้อ (อ่านรอบแรกแล้วพักก่อน ค่อยกลับมาแก้)</li>
+<li>ทำตาราง "ความเห็น – การแก้ไข – ตำแหน่งที่แก้" ให้อาจารย์ตรวจ</li>
+<li>แก้ไขให้ครบและส่งภายในกำหนด (STT52 มีวันส่งแก้ไขแยกตามรอบ)</li>
+<li>ถ้าไม่เห็นด้วยกับความเห็นใด ให้ตอบอย่างสุภาพพร้อมเหตุผลและหลักฐาน</li></ul></div>
+<div class="box"><h4>🧾 หลังตอบรับ</h4><ul>
+<li>ลงทะเบียนและชำระเงินก่อนปิด early-bird (STT52: 31 ต.ค. 2569)</li>
+<li>ทำหนังสือขออนุมัติเดินทาง/ขอทุน — STT52 มีแบบฟอร์ม "หนังสืออนุมัติบุคลากรเข้าร่วมประชุม" ใน <a href="${LINKS.downloads}" target="_blank">Downloads</a></li>
+<li>จองที่พักและการเดินทาง เก็บใบเสร็จทุกรายการ</li>
+<li>ตรวจรูปแบบการนำเสนอที่ได้รับ (oral/poster) แล้วไปต่อที่หัวข้อ "เตรียมตัวก่อนไป"</li></ul></div>
+</div>`,
+  en:`<div class="eyebrow">Preparing your work · 6</div><h2>Check before you submit, and handle the review</h2>
+<h3>Pre-submission checklist</h3>{{w:check:submit}}
+<div class="grid2">
+<div class="box"><h4>📨 When the decision arrives</h4><ul>
+<li>Read every reviewer comment (read once, step away, then revise)</li>
+<li>Make a "comment – change – location" table for your advisor to check</li>
+<li>Revise fully and resubmit on time (STT52 has round-specific correction dates)</li>
+<li>If you disagree with a comment, reply politely with reasons and evidence</li></ul></div>
+<div class="box"><h4>🧾 After acceptance</h4><ul>
+<li>Register and pay before early-bird closes (STT52: 31 Oct 2026)</li>
+<li>Request travel approval/funding — STT52 provides an approval letter form in <a href="${LINKS.downloads}" target="_blank">Downloads</a></li>
+<li>Book accommodation and travel; keep every receipt</li>
+<li>Check your assigned format (oral/poster), then continue with "Before you go"</li></ul></div>
+</div>`}
+];
+
+/* insert after "skills" */
+(function(){ const i = GUIDE.findIndex(g=>g.id==="skills"); GUIDE.splice(i+1,0,...NEW_SECTIONS); })();
+
+/* References additions */
+(function(){
+  const r = GUIDE.find(g=>g.id==="refs");
+  const addTh = `<li>STT52 — <a href="${LINKS.cfp}" target="_blank">Call for Papers</a>, <a href="${LINKS.dates}" target="_blank">Important Dates</a>, <a href="${LINKS.fees}" target="_blank">Registration Fees</a>, <a href="${LINKS.downloads}" target="_blank">Downloads</a> (เข้าถึง 25 พ.ย. 2569)</li>
+<li>Think. Check. Attend. — Conference checklist. <a href="${LINKS.tca}" target="_blank">link</a></li>
+<li>University of Canterbury, School of Biological Sciences. How to write a conference abstract. <a href="https://www.canterbury.ac.nz/content/dam/uoc-main-site/documents/faculties/science/biological-sciences/abc/How%20to%20write%20a%20conference%20abstract.pdf" target="_blank">PDF</a></li>
+<li>Temple University Libraries. How to write a scientific or research abstract. <a href="https://guides.temple.edu/c.php?g=1320941&p=9717586" target="_blank">link</a></li></ul>`;
+  r.th = r.th.replace("</ul>", addTh);
+  r.en = r.en.replace("</ul>", addTh.replace("เข้าถึง 25 พ.ย. 2569","accessed 25 Nov 2026"));
+  const o = GUIDE.find(g=>g.id==="overview");
+  o.th = o.th.replace("อย่างเป็นระบบ ทั้งการฟัง","อย่างเป็นระบบ ตั้งแต่การเลือกงานประชุมและเขียนบทคัดย่อ/บทความ ไปจนถึงการฟัง");
+  o.en = o.en.replace("in a structured way","").replace("out of <b>STT52","out of <b>STT52").replace(": listening to talks",": from choosing a conference and writing your abstract/paper to listening to talks");
+})();
+
+/* CFP worksheet rows (STT52 example values) */
+const CFP_ROWS = [
+  ["conf",{th:"ชื่องานประชุม",en:"Conference"},"STT52 — 52nd Int. Congress on Science, Technology & Technology-based Innovation"],
+  ["type",{th:"ประเภทผลงานที่รับ",en:"Submission types"},"Abstract only, or Abstract + Full paper (submitted together)"],
+  ["lang",{th:"ภาษา",en:"Language"},"English only"],
+  ["length",{th:"จำนวนคำ / หน้า",en:"Word / page limit"},"Abstract ~200 words, max 1 page; Full paper 6–10 pages"],
+  ["figs",{th:"รูป / ตาราง",en:"Figures / tables"},"Abstract: 1 figure or table; Full paper: allowed"],
+  ["template",{th:"Template และการจัดรูปแบบ",en:"Template & formatting"},"Official STT52 Word templates; single spacing; justified; 0 pt before/after"],
+  ["struct",{th:"หัวข้อที่ต้องมี",en:"Required sections"},"Title, Authors & Affiliation, Abstract (+ Intro, Methodology, Results & Discussion, Conclusion, Acknowledgements, References for full paper)"],
+  ["refs",{th:"รูปแบบการอ้างอิง",en:"Reference style"},"As shown in the full-paper template"],
+  ["authors",{th:"ผู้แต่ง / สังกัด",en:"Authors / affiliation"},"Per template; students must present individually"],
+  ["files",{th:"ไฟล์ที่ต้องส่ง",en:"Files to submit"},"Word (.doc/.docx) + PDF"],
+  ["system",{th:"ระบบ/ช่องทางส่ง",en:"Submission system"},"https://stt52.scisoc.or.th/login"],
+  ["deadline",{th:"กำหนดส่ง (เขตเวลา)",en:"Deadline (time zone)"},"27 Jul 2026 (extended to 10 & 20 Aug), UTC+7"],
+  ["review",{th:"การพิจารณา / วันแจ้งผล",en:"Review / decision dates"},"Peer-reviewed; interim decision, corrections, final decision by round"],
+  ["pres",{th:"รูปแบบการนำเสนอ",en:"Presentation format"},"Oral 12+3 min (English) or poster ≤90×120 cm (English)"],
+  ["pub",{th:"การตีพิมพ์",en:"Publication"},"Abstracts online; full papers in proceedings book"],
+  ["reg",{th:"การลงทะเบียน / ค่าใช้จ่าย",en:"Registration / fees"},"Student presenter 3,000 THB early-bird (to 31 Oct) / 3,800 regular"],
+  ["rules",{th:"กติกาอื่น",en:"Other rules"},"Original unpublished work; no change of type/content after acceptance"]
+];
+
+/* Conference evaluation */
+const FIT = [
+  {k:"scope",th:"ขอบเขตตรงกับหัวข้อวิจัย",en:"Scope matches my research"},
+  {k:"aud",th:"ผู้ฟัง/เครือข่ายที่อยากพบ",en:"Audience / people I want to meet"},
+  {k:"org",th:"ผู้จัดน่าเชื่อถือ จัดต่อเนื่อง",en:"Credible, long-running organiser"},
+  {k:"pub",th:"ช่องทางตีพิมพ์เหมาะสม",en:"Suitable publication outlet"},
+  {k:"cost",th:"ค่าใช้จ่ายและทุนเป็นไปได้",en:"Cost & funding feasible"},
+  {k:"time",th:"ผลงานพร้อมทันกำหนด",en:"My results will be ready in time"},
+  {k:"stu",th:"โอกาสสำหรับนิสิต (รางวัล/ทุน)",en:"Student opportunities (awards/grants)"}
+];
+const LEGIT = [
+  {k:"l1",th:"รู้ว่าสมาคม/หน่วยงานใดเป็นผู้จัด",en:"I know which society/institution organises it"},
+  {k:"l2",th:"มีสถานที่จัดงานที่ระบุชัดเจนและตรวจสอบได้",en:"The venue is clear and verifiable"},
+  {k:"l3",th:"อาจารย์หรือคนรู้จักเคยไป/เคยได้ยินชื่อ",en:"My advisor or colleagues have attended or know it"},
+  {k:"l4",th:"เว็บไซต์ครบ: ค่าธรรมเนียม กำหนดการ กรรมการ โปรแกรม",en:"Website is complete: fees, dates, committees, program"},
+  {k:"l5",th:"รู้จัก keynote หรือกรรมการบางท่าน",en:"I recognise some keynotes or committee members"},
+  {k:"l6",th:"ระบุกระบวนการพิจารณา (peer review) ชัดเจน",en:"The peer-review process is clearly described"},
+  {k:"l7",th:"ระบุชัดว่าตีพิมพ์ที่ไหน/ฐานข้อมูลใด",en:"It states where proceedings are published/indexed"},
+  {k:"l8",th:"ขอบเขตหัวข้อชัดเจน ไม่ได้รับ \"ทุกสาขา\" แบบไม่มีกรรมการรองรับ",en:"Scope is focused — not \"any topic\" with no matching committee"},
+  {k:"l9",th:"ไม่ได้ถูกเชิญผ่านอีเมลสแปม/เร่งให้จ่ายเงิน",en:"Not invited by spam or pressured to pay quickly"},
+  {k:"l10",th:"เคยอ่านผลงานจาก proceedings ของงานนี้",en:"I have read papers from its proceedings"}
+];
+
+/* Fictional annotated example abstract */
+const EX_ABS = {
+  title:"Soil eDNA reveals higher arthropod diversity in community forests than cassava fields in Khon Kaen",
+  bg:"Community forests are thought to support local biodiversity, yet rapid and comparable evidence across land uses remains scarce in northeastern Thailand.",
+  aim:"This study aimed to compare soil arthropod diversity between community forests and adjacent cassava fields using environmental DNA (eDNA) metabarcoding.",
+  methods:"We collected 60 topsoil samples from six paired sites in Khon Kaen Province during the 2026 rainy season. DNA was extracted, the mitochondrial cytochrome c oxidase subunit I (COI) region was amplified and sequenced, and diversity was compared using Hill numbers and permutational multivariate analysis of variance (PERMANOVA).",
+  results:"In total, 412 arthropod operational taxonomic units (OTUs) were detected. Community forests contained 1.8 times more OTUs than cassava fields (mean 96 vs 53 per site; p < 0.01), and community composition differed significantly between land uses (PERMANOVA R² = 0.31, p = 0.001). Springtails and mites dominated forest samples, whereas cassava fields were dominated by ants.",
+  concl:"Soil eDNA provides a rapid, standardised tool for monitoring biodiversity in community forests and could support evidence-based local conservation planning.",
+  kw:"eDNA metabarcoding; soil arthropods; land use; community forest; biodiversity monitoring"
+};
+
 /* ===== Assignments ===== */
 const F = (k,th,en,type="text",opts) => ({k,th,en,type,opts});
 const CONTACT_TYPES = [
@@ -1013,9 +1396,123 @@ function wFollowup(){
   <div class="out" id="fuOut">${esc(fuText())}</div>
   <div class="row"><button class="btn sm" data-copy="fuOut">${UI.copy[S.lang]}</button><small class="muted">${T("ส่งภายใน 48 ชม. · ปรับให้เป็นภาษาของตัวเอง · อ้างถึงเรื่องที่คุยจริง","Send within 48 h · personalise it · reference what you actually discussed")}</small></div></div>`;
 }
+/* --- timeline (backward planner) --- */
+const fmtDate = d => d.toLocaleDateString(S.lang==="th"?"th-TH":"en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+const addDays = (iso,n) => { const d=new Date(iso+"T00:00:00"); d.setDate(d.getDate()+n); return d; };
+const TL_STEPS = [
+  ["dl",-90,{th:"เลือกงานประชุม อ่าน Call for Papers ดาวน์โหลด template คุยกับอาจารย์",en:"Choose the conference, read the CFP, download the template, talk to your advisor"}],
+  ["dl",-60,{th:"สรุปผลการทดลองและทำรูป/ตารางหลักให้เสร็จ",en:"Finalise results and the key figures/tables"}],
+  ["dl",-30,{th:"ร่างแรก (abstract/full paper) ส่งอาจารย์",en:"First draft (abstract/full paper) to your advisor"}],
+  ["dl",-21,{th:"แก้ไขรอบที่ 1 ส่งผู้ร่วมวิจัยทุกคน",en:"Revision 1 to all co-authors"}],
+  ["dl",-10,{th:"ตรวจภาษา ตรวจความซ้ำ ตรวจการอ้างอิง ตรวจ format",en:"Language, similarity, references and format checks"}],
+  ["dl",-3,{th:"กดส่ง (เผื่อระบบล่ม/อินเทอร์เน็ตมีปัญหา) และเก็บหลักฐานการส่ง",en:"Submit (buffer for system/internet failures) and keep proof"}],
+  ["dl",0,{th:"กำหนดส่งของงาน",en:"Conference submission deadline"},true],
+  ["cf",-60,{th:"ลงทะเบียน early-bird / ขออนุมัติเดินทางและทุน (ถ้ายังไม่ทราบวันปิด early-bird)",en:"Register early-bird / request travel approval & funding (if early-bird date unknown)"}],
+  ["cf",-30,{th:"เริ่มทำโปสเตอร์/สไลด์",en:"Start your poster/slides"}],
+  ["cf",-14,{th:"ซ้อมนำเสนอต่อหน้าแล็บครั้งที่ 1",en:"First rehearsal in front of your lab"}],
+  ["cf",-7,{th:"ไฟล์ฉบับสุดท้าย / สั่งพิมพ์โปสเตอร์",en:"Final file / print the poster"}],
+  ["cf",-2,{th:"เตรียมเดินทาง เช็กลิสต์ของที่ต้องนำไป",en:"Travel prep and packing checklist"}],
+  ["cf",0,{th:"วันแรกของงานประชุม",en:"First day of the conference"},true]
+];
+function wTimeline(){
+  const dl=S.tl?.dl||"", cf=S.tl?.cf||"";
+  const today=new Date(); today.setHours(0,0,0,0);
+  let rows=[];
+  TL_STEPS.forEach(([base,off,lab,key])=>{ const iso=base==="dl"?dl:cf; if(!iso) return; const d=addDays(iso,off); rows.push({d,lab,key}); });
+  rows.sort((a,b)=>a.d-b.d);
+  const next = rows.find(r=>r.d>=today);
+  return `<div class="box"><div class="fgrid">
+   <div><label class="f">${T("กำหนดส่งผลงาน","Submission deadline")}</label><input type="date" data-bind="tl.dl" data-rerender="1" value="${esc(dl)}"></div>
+   <div><label class="f">${T("วันแรกของงานประชุม","Conference start date")}</label><input type="date" data-bind="tl.cf" data-rerender="1" value="${esc(cf)}"></div>
+  </div>
+  <div class="row" style="margin:.6rem 0"><button class="btn sm ghost" data-act="tlStt">${T("ใส่ตัวอย่าง STT52","Use STT52 example")}</button></div>
+  ${rows.length?`<div class="tblwrap"><table><thead><tr><th>${T("วันที่","Date")}</th><th>${T("สิ่งที่ต้องทำ","Milestone")}</th></tr></thead><tbody>${rows.map(r=>`<tr style="${r.key?"font-weight:600;background:#f3f8f6":""}${r.d<today&&!r.key?"color:#9aa0a3":""}"><td style="white-space:nowrap">${esc(fmtDate(r.d))}</td><td>${esc(L(r.lab))} ${r===next?`<span class="pill warn">${T("ถัดไป","next")}</span>`:""}${r.d<today?` <span class="pill gray">${T("ผ่านแล้ว","past")}</span>`:""}</td></tr>`).join("")}</tbody></table></div>`
+   :`<p class="muted">${T("ใส่วันที่อย่างน้อยหนึ่งช่องเพื่อสร้างแผน","Enter at least one date to build the plan")}</p>`}</div>`;
+}
+/* --- conference evaluation --- */
+function wConfcheck(){
+  const c=S.cc||{}; const fit=c.fit||{}, lg=c.legit||{};
+  const fitTot=FIT.reduce((s,f)=>s+(fit[f.k]||0),0), fitN=FIT.filter(f=>fit[f.k]).length;
+  const no=LEGIT.filter(l=>lg[l.k]==="no").length, uns=LEGIT.filter(l=>lg[l.k]==="unsure").length, yes=LEGIT.filter(l=>lg[l.k]==="yes").length;
+  const yn = l => ["yes","unsure","no"].map(v=>`<button data-set="cc.legit.${l.k}" data-sv="${v}" class="${lg[l.k]===v?"on":""}" style="width:auto;padding:0 .55rem">${{yes:T("ใช่","Yes"),unsure:T("ไม่แน่ใจ","Unsure"),no:T("ไม่","No")}[v]}</button>`).join("");
+  let verdict="";
+  if(fitN===FIT.length && yes+no+uns===LEGIT.length){
+    if(no>=3) verdict=`<div class="warn">⛔ ${T("มีสัญญาณเตือนหลายข้อ — อาจเป็นงานไม่น่าเชื่อถือ ปรึกษาอาจารย์ก่อนส่งผลงานหรือจ่ายเงิน","Several red flags — possibly unreliable. Consult your advisor before submitting or paying.")}</div>`;
+    else if(no>0||uns>2) verdict=`<div class="warn">⚠️ ${T("ยังมีข้อสงสัย — ตรวจสอบข้อที่ตอบ \"ไม่/ไม่แน่ใจ\" เพิ่มเติม","Some doubts — investigate the \"No/Unsure\" items further.")}</div>`;
+    else verdict = fitTot>=28 ? `<div class="note">✅ ${T("น่าเชื่อถือและเหมาะกับเป้าหมาย — เสนออาจารย์ได้เลย","Credible and a good fit — propose it to your advisor.")}</div>` : `<div class="note">🤔 ${T("น่าเชื่อถือ แต่ความเหมาะสมปานกลาง — ลองเทียบกับงานอื่น","Credible but only a moderate fit — compare with alternatives.")}</div>`;
+  }
+  return `<div class="box">${inp("cc.name",T("ชื่องานประชุมที่กำลังพิจารณา","Conference you are considering"),"text",null,"e.g. STT52")}
+  <h4 style="margin-top:1rem">A. ${T("ความเหมาะสมกับเป้าหมาย (1–5)","Fit with your goals (1–5)")}</h4>
+  ${FIT.map(f=>`<div class="crit"><div><b>${esc(L(f))}</b></div>${scoreBtns("cc.fit."+f.k)}</div>`).join("")}
+  <p><b>${UI.total[S.lang]}: ${fitTot}/35</b></p>
+  <h4 style="margin-top:1rem">B. ${T("ความน่าเชื่อถือ (ดัดแปลงจาก Think. Check. Attend.)","Credibility (adapted from Think. Check. Attend.)")}</h4>
+  ${LEGIT.map(l=>`<div class="crit"><div>${esc(L(l))}</div><div class="score">${yn(l)}</div></div>`).join("")}
+  <p><b>${T("ใช่","Yes")} ${yes} · ${T("ไม่แน่ใจ","Unsure")} ${uns} · ${T("ไม่","No")} ${no}</b></p>${verdict}
+  <button class="btn sm ghost" data-act="ccClear">${T("ล้าง","Clear")}</button></div>`;
+}
+/* --- CFP worksheet --- */
+function wCfp(){
+  return `<div class="box"><div class="tblwrap"><table><thead><tr><th style="width:28%">${T("ข้อกำหนด","Requirement")}</th><th>${T("งานที่จะส่ง","Your target conference")}</th></tr></thead><tbody>
+  ${CFP_ROWS.map(([k,l,ex])=>`<tr><td><b>${esc(L(l))}</b></td><td><textarea data-bind="cfp.${k}" style="min-height:42px" placeholder="${esc(ex)}">${esc(S.cfp?.[k])}</textarea></td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="row" style="margin-top:.6rem"><button class="btn sm ghost" data-act="cfpStt">${T("เติมตัวอย่าง STT52","Fill with STT52 example")}</button><button class="btn sm" data-act="cfpCopy">${UI.copy[S.lang]}</button><button class="btn sm danger" data-act="cfpClear">${T("ล้าง","Clear")}</button></div></div>`;
+}
+/* --- abstract builder --- */
+const ABS_PARTS = [
+  ["bg",{th:"1. Background (บริบท/ปัญหา/ช่องว่าง)",en:"1. Background (context/problem/gap)"},30],
+  ["aim",{th:"2. Aim / hypothesis",en:"2. Aim / hypothesis"},20],
+  ["methods",{th:"3. Methods",en:"3. Methods"},50],
+  ["results",{th:"4. Results (ใส่ตัวเลข)",en:"4. Results (with numbers)"},70],
+  ["concl",{th:"5. Conclusion / implication",en:"5. Conclusion / implication"},30]
+];
+let SEG=null; try{ SEG=new Intl.Segmenter(undefined,{granularity:"word"}); }catch(e){}
+function wc(t){ t=(t||"").trim(); if(!t) return 0;
+  if(/[฀-๿]/.test(t) && SEG){ let n=0; for(const s of SEG.segment(t)) if(s.isWordLike) n++; return n; }
+  return t.split(/\s+/).filter(w=>/[\p{L}\p{N}]/u.test(w)).length; }
+function absState(){ S.abs=S.abs||{limit:200}; if(!S.abs.limit) S.abs.limit=200; return S.abs; }
+function absBody(){ const a=absState(); return ABS_PARTS.map(([k])=>(a[k]||"").trim()).filter(Boolean).join(" "); }
+function absChecks(){
+  const a=absState(), body=absBody(), n=wc(body), lim=+a.limit||200, tw=wc(a.title);
+  const acr=[...new Set((body.match(/\b[A-Z][A-Z0-9]{1,}s?\b/g)||[]))].filter(x=>!/^(I|II|III|IV|DNA|RNA|PCR)$/.test(x));
+  const undefinedAcr=acr.filter(x=>!new RegExp("\\(\\s*"+x.replace(/s$/,"")+"s?\\s*\\)").test(body));
+  const out=[];
+  const ok=(c,th,en)=>out.push({c,txt:T(th,en)});
+  ok(n>0 && n<=lim, `ความยาว ${n}/${lim} คำ`, `Length ${n}/${lim} words`);
+  ok(n>=lim*0.7 || n===0 ? n>0 : false, "ใช้พื้นที่ได้คุ้ม (≥70% ของจำนวนคำที่กำหนด)", "Uses the space well (≥70% of the limit)");
+  ok(tw>=6 && tw<=18, `ชื่อเรื่อง ${tw} คำ (แนะนำ 10–15)`, `Title ${tw} words (aim for 10–15)`);
+  ok(/\d/.test(a.results||""), "ส่วนผลลัพธ์มีตัวเลข", "Results contain numbers");
+  ok(!/will be (discussed|presented|shown)|จะ(นำเสนอ|อภิปราย)/i.test(body), "ไม่มีผลลัพธ์แบบคลุมเครือ (\"will be discussed\")", "No vague results (\"will be discussed\")");
+  ok(!/\(([A-Z][a-z]+(\s+et al\.)?,?\s*\d{4})\)|\[\d+(,\s*\d+)*\]/.test(body), "ไม่มีการอ้างอิงเอกสารในบทคัดย่อ", "No citations in the abstract");
+  ok(undefinedAcr.length===0, undefinedAcr.length?`ตัวย่อที่อาจยังไม่นิยาม: ${undefinedAcr.join(", ")}`:"ตัวย่อถูกนิยามแล้ว", undefinedAcr.length?`Possibly undefined acronyms: ${undefinedAcr.join(", ")}`:"Acronyms defined");
+  ok(wc(a.kw)>0, "มี keywords", "Keywords provided");
+  return {n,lim,out};
+}
+function absPreview(){ const a=absState(); return `${(a.title||"").trim()||"[Title]"}\n\n${absBody()||"[Abstract]"}\n\nKeywords: ${(a.kw||"").trim()||"[3–5 keywords]"}`; }
+function wAbstract(){
+  const a=absState(); const ck=absChecks();
+  return `<div class="box">
+  <div class="fgrid"><div>${inp("abs.limit",T("จำนวนคำสูงสุดที่งานกำหนด","Word limit set by the conference"),"text")}</div></div>
+  ${inp("abs.title","Title")}<small class="muted" id="absTw"></small>
+  ${ABS_PARTS.map(([k,l,t])=>`${inp("abs."+k,L(l),"textarea")}<small class="muted" data-wc="${k}" data-target="${t}"></small>`).join("")}
+  ${inp("abs.kw","Keywords (3–5, ; separated)")}
+  <div style="margin:.8rem 0 .3rem"><small>${T("จำนวนคำรวม","Total words")}: <b id="absN">${ck.n}</b> / ${ck.lim}</small><div class="bar"><i id="absBar" style="width:${Math.min(100,ck.n/ck.lim*100)}%;${ck.n>ck.lim?"background:#c0392b":""}"></i></div></div>
+  <ul class="check" id="absChecks">${ck.out.map(c=>`<li>${c.c?"✅":"⚠️ "+T("ตรวจอีกครั้ง —","Check —")} <span>${esc(c.txt)}</span></li>`).join("")}</ul>
+  <div class="out" id="absOut">${esc(absPreview())}</div>
+  <div class="row"><button class="btn sm" data-copy="absOut">${UI.copy[S.lang]}</button><button class="btn sm ghost" data-act="absEx">${T("ดูตัวอย่าง (สมมติ)","Load example (fictional)")}</button><button class="btn sm danger" data-act="absClear">${T("ล้าง","Clear")}</button></div>
+  <p class="muted" style="margin-top:.6rem">${T("ตัวอย่างเป็นงานสมมติเพื่อสาธิตโครงสร้างเท่านั้น ตัวเลขไม่ใช่ข้อมูลจริง · การตรวจอัตโนมัติเป็นเพียงตัวช่วย ไม่แทนการอ่านทานโดยอาจารย์","The example is fictional, to demonstrate structure only — numbers are not real data · Automated checks are a helper, not a substitute for your advisor's review")}</p></div>`;
+}
+function refreshAbs(){
+  if(!$("#absOut")) return;
+  const a=absState(); const ck=absChecks();
+  $("#absOut").textContent=absPreview(); $("#absN").textContent=ck.n;
+  const bar=$("#absBar"); bar.style.width=Math.min(100,ck.n/ck.lim*100)+"%"; bar.style.background=ck.n>ck.lim?"#c0392b":"";
+  $("#absChecks").innerHTML=ck.out.map(c=>`<li>${c.c?"✅":"⚠️ "+T("ตรวจอีกครั้ง —","Check —")} <span>${esc(c.txt)}</span></li>`).join("");
+  document.querySelectorAll("[data-wc]").forEach(e=>{ const n=wc(a[e.dataset.wc]); e.textContent=`${n} ${T("คำ","words")} · ${T("แนะนำ","target")} ~${e.dataset.target}`; });
+  const tw=$("#absTw"); if(tw) tw.textContent=`${wc(a.title)} ${T("คำ","words")}`;
+}
 function widget(name){
   if(name.startsWith("check:")) return wCheck(name.slice(6));
-  return ({planner:wPlanner,rubric:wRubric,pitch:wPitch,followup:wFollowup}[name]||(()=>""))();
+  return ({planner:wPlanner,rubric:wRubric,pitch:wPitch,followup:wFollowup,timeline:wTimeline,confcheck:wConfcheck,cfp:wCfp,abstract:wAbstract}[name]||(()=>""))();
 }
 
 /* ---------- Render Guide ---------- */
@@ -1023,11 +1520,12 @@ let spy;
 function renderGuide(){
   const total = Object.values(CHECK).reduce((s,l)=>s+l.length,0);
   const done = Object.keys(CHECK).reduce((s,k)=>s+CHECK[k].filter((_,i)=>S.ck[k+":"+i]).length,0);
-  $("#side").innerHTML = GUIDE.map(g=>`<a href="#${g.id}" data-nav="${g.id}">${L(g.nav)}</a>`).join("")
+  let lastG="";
+  $("#side").innerHTML = GUIDE.map(g=>{ const gr=GROUP_OF[g.id]; const head = gr&&gr!==lastG ? `<div class="sgroup">${L(GROUPS[gr])}</div>` : ""; lastG=gr; return head+`<a href="#${g.id}" data-nav="${g.id}">${L(g.nav)}</a>`; }).join("")
     + `<div class="prog"><small>${UI.progress[S.lang]}: ${done}/${total}</small><div class="bar"><i style="width:${done/total*100}%"></i></div></div>`
     + `<div class="prog"><button class="btn sm" data-tab="asg">${T("ไปที่งานมอบหมาย →","Go to assignments →")}</button></div>`;
   $("#main").innerHTML = GUIDE.map(g=>`<section class="card ${g.hero?"hero":""}" id="${g.id}">${g[S.lang].replace(/\{\{w:([\w:]+)\}\}/g,(_,w)=>`<div data-w="${w}">${widget(w)}</div>`)}</section>`).join("");
-  setupSpy();
+  setupSpy(); refreshAbs();
 }
 function setupSpy(){
   if(spy) spy.disconnect();
@@ -1150,6 +1648,7 @@ function render(keepScroll){
 function refreshLive(){
   const po=$("#pitchOut"); if(po){ po.textContent=pitchText(); const w=pitchText().split(/\s+/).length; const pl=$("#pitchLen"); if(pl) pl.textContent = S.lang==="en" ? `${w} words ≈ ${Math.round(w/2.3)} s` : `${pitchText().length} ${T("ตัวอักษร","chars")}`; }
   const fo=$("#fuOut"); if(fo) fo.textContent=fuText();
+  refreshAbs();
   if(S.tab==="asg"){
     ASSIGN.forEach(d=>{ const s=asgStats(d); const set=(id,fn)=>{const e=$(id); if(e) fn(e);};
       set("#pc-"+d.id,e=>e.textContent=s.pct+"%"); set("#pb-"+d.id,e=>e.style.width=s.pct+"%"); set("#tb-"+d.id,e=>e.style.width=s.pct+"%"); set("#sp-"+d.id,e=>e.textContent=s.pct+"%"); });
@@ -1161,12 +1660,13 @@ function refreshLive(){
 document.addEventListener("input",e=>{
   const el=e.target; if(!el.dataset.bind) return;
   const v = el.type==="checkbox" ? el.checked : el.value;
-  setPath(el.dataset.bind, v); save(); refreshLive();
+  setPath(el.dataset.bind, v); save(); if(el.dataset.rerender) return; refreshLive();
   if(el.type==="checkbox"){ const li=el.closest("li"); if(li) li.classList.toggle("done",v); }
 });
 document.addEventListener("change",e=>{
   const el=e.target;
   if(el.dataset.ck){ S.ck[el.dataset.ck]=el.checked; save(); render(true); return; }
+  if(el.dataset.rerender){ render(true); return; }
   if(el.dataset.act==="fillFu" && el.value!==""){ const c=A("A6").r[+el.value]; Object.assign(S.fu,{to:c.name||"",topic:c.topic||"",where:c.where||"",next:c.next||""}); save(); render(true); return; }
   if(el.id==="restoreFile" && el.files[0]){ const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(!d||typeof d!=="object"||!d.a) throw 0; S=Object.assign(S,d); save(); render(); toast(T("กู้คืนข้อมูลแล้ว","Data restored")); }catch(err){ toast(T("ไฟล์ไม่ถูกต้อง","Invalid file")); } }; r.readAsText(el.files[0]); }
 });
@@ -1175,13 +1675,20 @@ document.addEventListener("click",e=>{
   if(b.dataset.lang){ S.lang=b.dataset.lang; save(); render(true); return; }
   if(b.dataset.tab){ S.tab=b.dataset.tab; save(); try{history.replaceState(null,"",S.tab==="asg"?"#assignments":"#guide");}catch(_){} render(); window.scrollTo(0,0); return; }
   if(b.dataset.blk!==undefined){ const i=b.dataset.blk; S.plan[i]=!S.plan[i]; if(!S.plan[i]) delete S.plan[i]; save(); render(true); return; }
-  if(b.dataset.set){ const cur=getPath(b.dataset.set); const v=+b.dataset.val; setPath(b.dataset.set, cur===v?0:v); save(); render(true); return; }
+  if(b.dataset.set){ const cur=getPath(b.dataset.set); const v= b.dataset.sv!==undefined ? b.dataset.sv : +b.dataset.val; setPath(b.dataset.set, cur===v?(typeof v==="string"?"":0):v); save(); render(true); return; }
   if(b.dataset.copy){ const t=$("#"+b.dataset.copy).textContent; (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(UI.copied[S.lang])).catch(()=>{ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); try{document.execCommand("copy"); toast(UI.copied[S.lang]);}catch(_){} ta.remove(); }); return; }
   const act=b.dataset.act; if(!act) return;
   if(act==="addTalk"){ const title=$("#mt-title").value.trim(); if(!title){ toast(T("กรุณาใส่ชื่อเรื่อง","Please enter a title")); return; }
     S.myTalks.push({day:$("#mt-day").value,time:$("#mt-time").value.trim(),room:$("#mt-room").value.trim(),title,pri:$("#mt-pri").value}); save(); render(true); return; }
   if(act==="delTalk"){ S.myTalks.splice(+b.dataset.i,1); save(); render(true); return; }
   if(act==="unblk"){ delete S.plan[b.dataset.i]; save(); render(true); return; }
+  if(act==="tlStt"){ S.tl={dl:"2026-07-27",cf:"2026-11-23"}; save(); render(true); return; }
+  if(act==="ccClear"){ S.cc={}; save(); render(true); return; }
+  if(act==="cfpStt"){ S.cfp={}; CFP_ROWS.forEach(([k,,ex])=>S.cfp[k]=ex); save(); render(true); return; }
+  if(act==="cfpClear"){ S.cfp={}; save(); render(true); return; }
+  if(act==="cfpCopy"){ const t=CFP_ROWS.map(([k,l])=>`${L(l)}: ${(S.cfp&&S.cfp[k])||"-"}`).join("\n"); (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(UI.copied[S.lang])).catch(()=>{}); return; }
+  if(act==="absEx"){ S.abs=Object.assign({limit:200},EX_ABS); save(); render(true); return; }
+  if(act==="absClear"){ S.abs={limit:200}; save(); render(true); return; }
   if(act==="clearRub"){ S.rub={}; save(); render(true); return; }
   if(act==="addItem"){ A(b.dataset.id).r.push({}); save(); render(true); return; }
   if(act==="delItem"){ if(confirmDel()) { A(b.dataset.id).r.splice(+b.dataset.i,1); save(); render(true);} return; }
